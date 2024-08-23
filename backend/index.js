@@ -1,9 +1,8 @@
-// /backend/index.js
-
 const express = require('express');
 const { ApolloServer } = require('apollo-server-express');
+const cors = require('cors');  // Import CORS
 const schema = require('./schemas');
-const resolvers = require('./resolvers'); // Ensure this matches your resolvers' path
+const resolvers = require('./resolvers');
 
 const server = new ApolloServer({
   typeDefs: schema,
@@ -11,6 +10,9 @@ const server = new ApolloServer({
 });
 
 const app = express();
+
+app.use(cors());  // Enable CORS
+
 server.start().then(() => {
   server.applyMiddleware({ app });
 
