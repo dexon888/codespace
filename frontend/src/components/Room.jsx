@@ -1,37 +1,35 @@
-import React from 'react';
-import { useQuery, gql } from '@apollo/client';
+import React, { useEffect, useState } from 'react';
+import { io } from 'socket.io-client';
+import CodeEditor from './CodeEditor';
 
-const ROOM_QUERY = gql`
-  query GetRoom($id: ID!) {
-    room(id: $id) {
-      id
-      name
-      participants {
-        id
-        username
-      }
-    }
-  }
-`;
+const socket = io('http://localhost:4000'); // Connect to your WebSocket server
 
-const Room = ({ roomId }) => {
-  const { loading, error, data } = useQuery(ROOM_QUERY, {
-    variables: { id: roomId },
-  });
+const Room = () => {
+  const [code, setCode] = useState('');
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error: {error.message}</p>;
+  useEffect(() => {
+    // Listen for code updates from the server
+    socket.on('code-update', (newCode) => {
+      console.log('Code update received:', newCode);  // Add this log
+      setCode(newCode);
+    });
+
+    // Clean up the socket connection on component unmount
+    return () => {
+      socket.off('code-update');
+    };
+  }, []);
+
+
+  const handleCodeChange = (newCode) => {
+    setCode(newCode);
+    socket.emit('code-change', newCode); // Send the code change to the server
+  };
 
   return (
     <div>
-      <h1>{data.room.name}</h1>
-      <h2>Participants</h2>
-      <ul>
-        {data.room.participants.map((participant) => (
-          <li key={participant.id}>{participant.username}</li>
-        ))}
-      </ul>
-      {/* Code editor component will be added here */}
+      <h1>Room</h1>
+      <CodeEditor initialCode={code} onChange={handleCodeChange} />
     </div>
   );
 };

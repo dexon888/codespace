@@ -68,8 +68,8 @@ const Lobby = () => {
   };
 
   const handleJoinRoom = async (roomId) => {
+    const userId = Math.floor(Math.random() * 1000); // Random userId for testing
     try {
-      const userId = 1; // Replace with the actual user ID from your auth system
       const { data, errors } = await joinRoom({ variables: { roomId, userId } });
       if (errors) {
         console.error("GraphQL errors:", errors);
@@ -81,6 +81,7 @@ const Lobby = () => {
       alert("Failed to join room. Please try again.");
     }
   };
+
 
   return (
     <div>
