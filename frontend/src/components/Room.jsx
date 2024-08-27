@@ -8,24 +8,29 @@ const socket = io('http://localhost:4000'); // Connect to your WebSocket server
 const Room = () => {
   const [code, setCode] = useState('');
   const [problemContent, setProblemContent] = useState(''); // State for Leetcode problem content
+  const [output, setOutput] = useState(''); // State to store the output of the code execution
 
   useEffect(() => {
     // Listen for code updates from the server
     socket.on('code-update', (newCode) => {
-      console.log('Code update received:', newCode); 
       setCode(newCode);
     });
 
     // Listen for problem updates from the server
     socket.on('problem-update', (newProblemContent) => {
-      console.log('Problem update received:', newProblemContent);
       setProblemContent(newProblemContent);
+    });
+
+    // Listen for output updates from the server
+    socket.on('output-update', (newOutput) => {
+      setOutput(newOutput);
     });
 
     // Clean up the socket connection on component unmount
     return () => {
       socket.off('code-update');
       socket.off('problem-update');
+      socket.off('output-update');
     };
   }, []);
 
@@ -34,7 +39,25 @@ const Room = () => {
     socket.emit('code-change', newCode); // Send the code change to the server
   };
 
- const handleSearchProblem = async () => {
+  const handleRunCode = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/run-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code }),
+      });
+
+      const result = await response.json();
+      setOutput(result.output);
+      socket.emit('output-change', result.output); // Sync the output with the other clients
+    } catch (error) {
+      setOutput(`Error: ${error.message}`);
+    }
+  };
+
+  const handleSearchProblem = async () => {
     const url = document.getElementById('problem-url').value;
 
     const titleSlug = url.split('/').filter(Boolean).pop(); // e.g., "climbing-stairs"
@@ -62,17 +85,10 @@ const Room = () => {
     }
   };
 
-  const handleFetchRandomProblem = () => {
-    const simulatedRandomProblem = 'Random Leetcode Problem Content';
-    setProblemContent(simulatedRandomProblem);
-    socket.emit('problem-change', simulatedRandomProblem);
-  };
-
   return (
     <div className="room-container">
       <div className="left-panel">
         <div className="problem-actions">
-          <button onClick={handleFetchRandomProblem}>Show Random Problem</button>
           <div className="search-bar">
             <input type="text" id="problem-url" placeholder="Enter Leetcode URL" />
             <button onClick={handleSearchProblem}>Load Problem</button>
@@ -85,6 +101,11 @@ const Room = () => {
       </div>
       <div className="right-panel">
         <CodeEditor initialCode={code} onChange={handleCodeChange} />
+        <button onClick={handleRunCode} className="run-button">Run Code</button>
+        <div className="output-panel">
+          <h3>Output</h3>
+          <pre>{output}</pre>
+        </div>
       </div>
     </div>
   );

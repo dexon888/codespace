@@ -48,6 +48,11 @@ const startServer = async () => {
       socket.broadcast.emit('problem-update', newProblemContent);
     });
 
+    socket.on('output-change', (newOutput) => {
+      console.log('Output change received:', newOutput);
+      socket.broadcast.emit('output-update', newOutput);
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
     });
