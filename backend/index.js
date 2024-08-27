@@ -1,15 +1,17 @@
 const express = require('express');
 const { ApolloServer } = require('apollo-server-express');
-const http = require('http'); // Import http to create a server
+const http = require('http');
 const cors = require('cors');
-const { Server } = require('socket.io'); // Import Socket.IO
+const { Server } = require('socket.io');
 const schema = require('./schemas');
 const resolvers = require('./resolvers');
+const leetcodeRoutes = require('./routes/leetcode'); // Import the Leetcode route handler
 
 const startServer = async () => {
   const app = express();
   app.use(cors()); // Enable CORS
-
+  app.use(express.json()); // Enable JSON body parsing
+  
   const server = http.createServer(app); // Create an HTTP server
 
   // Initialize Apollo Server
@@ -20,6 +22,9 @@ const startServer = async () => {
 
   await apolloServer.start();
   apolloServer.applyMiddleware({ app });
+
+  // Use the Leetcode API routes
+  app.use('/api', leetcodeRoutes); // Use the imported routes
 
   // Set up Socket.IO
   const io = new Server(server, {
@@ -36,6 +41,11 @@ const startServer = async () => {
     socket.on('code-change', (newCode) => {
       console.log('Code change received:', newCode);
       socket.broadcast.emit('code-update', newCode);
+    });
+
+    socket.on('problem-change', (newProblemContent) => {
+      console.log('Problem change received:', newProblemContent);
+      socket.broadcast.emit('problem-update', newProblemContent);
     });
 
     socket.on('disconnect', () => {

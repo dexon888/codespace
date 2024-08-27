@@ -16,9 +16,16 @@ const Room = () => {
       setCode(newCode);
     });
 
+    // Listen for problem updates from the server
+    socket.on('problem-update', (newProblemContent) => {
+      console.log('Problem update received:', newProblemContent);
+      setProblemContent(newProblemContent);
+    });
+
     // Clean up the socket connection on component unmount
     return () => {
       socket.off('code-update');
+      socket.off('problem-update');
     };
   }, []);
 
@@ -27,15 +34,38 @@ const Room = () => {
     socket.emit('code-change', newCode); // Send the code change to the server
   };
 
-  const handleFetchRandomProblem = () => {
-    // Simulate fetching a random Leetcode problem
-    setProblemContent('Random Leetcode Problem Content');
+ const handleSearchProblem = async () => {
+    const url = document.getElementById('problem-url').value;
+
+    const titleSlug = url.split('/').filter(Boolean).pop(); // e.g., "climbing-stairs"
+    
+    try {
+      const response = await fetch('http://localhost:4000/api/fetch-leetcode-problem', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ titleSlug }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const problem = await response.json();
+      if (problem && problem.content) {
+        setProblemContent(problem.content);
+        socket.emit('problem-change', problem.content);
+      }
+    } catch (error) {
+      console.error('Failed to fetch the problem content:', error);
+    }
   };
 
-  const handleSearchProblem = () => {
-    const url = document.getElementById('problem-url').value;
-    // Simulate fetching Leetcode problem from URL
-    setProblemContent(`Content fetched from ${url}`);
+  const handleFetchRandomProblem = () => {
+    const simulatedRandomProblem = 'Random Leetcode Problem Content';
+    setProblemContent(simulatedRandomProblem);
+    socket.emit('problem-change', simulatedRandomProblem);
   };
 
   return (
@@ -50,7 +80,7 @@ const Room = () => {
         </div>
         <div className="problem-content">
           <h3>Leetcode Problem</h3>
-          <p>{problemContent}</p>
+          <div className="problem-description" dangerouslySetInnerHTML={{ __html: problemContent }}></div>
         </div>
       </div>
       <div className="right-panel">
