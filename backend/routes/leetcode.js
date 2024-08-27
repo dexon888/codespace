@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const { spawn } = require('child_process'); // Import child_process to run Python scripts
 const router = express.Router();
 
 router.post('/fetch-leetcode-problem', async (req, res) => {
@@ -20,25 +21,26 @@ router.post('/fetch-leetcode-problem', async (req, res) => {
 router.post('/run-code', (req, res) => {
   const { code } = req.body;
 
-  try {
-    let output = '';
-    const captureLog = (...args) => {
-      output += args.join(' ') + '\n';
-    };
+  const process = spawn('python3', ['-c', code]); // Spawn a child process to run Python code
 
-    // Temporarily override console.log to capture output
-    const originalConsoleLog = console.log;
-    console.log = captureLog;
+  let output = '';
+  let errorOutput = '';
 
-    eval(code); // Warning: eval() is unsafe for production
+  process.stdout.on('data', (data) => {
+    output += data.toString();
+  });
 
-    // Restore original console.log function
-    console.log = originalConsoleLog;
+  process.stderr.on('data', (data) => {
+    errorOutput += data.toString();
+  });
 
-    res.json({ output: output.trim() || 'undefined' });
-  } catch (error) {
-    res.json({ output: `Error: ${error.message}` });
-  }
+  process.on('close', (code) => {
+    if (errorOutput) {
+      res.json({ output: `Error: ${errorOutput}` });
+    } else {
+      res.json({ output: output.trim() });
+    }
+  });
 });
 
 module.exports = router;

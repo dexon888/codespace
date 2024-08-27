@@ -1,32 +1,47 @@
 import React, { useEffect, useState } from 'react';
 import { io } from 'socket.io-client';
 import CodeEditor from './CodeEditor';
-import './Room.css'; // Import CSS for styling
+import './Room.css';
 
-const socket = io('http://localhost:4000'); // Connect to your WebSocket server
+const socket = io('http://localhost:4000');
 
 const Room = () => {
-  const [code, setCode] = useState('');
-  const [problemContent, setProblemContent] = useState(''); // State for Leetcode problem content
-  const [output, setOutput] = useState(''); // State to store the output of the code execution
+  const defaultPythonCode = `# Necessary imports for a Leetcode problem
+import sys
+import collections
+import math
+
+def main():
+    # Your code here
+    pass
+
+if __name__ == "__main__":
+    main()
+  `;
+
+  const [code, setCode] = useState(defaultPythonCode); 
+  const [problemContent, setProblemContent] = useState('');
+  const [output, setOutput] = useState('');
 
   useEffect(() => {
     // Listen for code updates from the server
     socket.on('code-update', (newCode) => {
+      console.log('Code update received:', newCode);  // Debugging line
       setCode(newCode);
     });
 
     // Listen for problem updates from the server
     socket.on('problem-update', (newProblemContent) => {
+      console.log('Problem update received:', newProblemContent);  // Debugging line
       setProblemContent(newProblemContent);
     });
 
     // Listen for output updates from the server
     socket.on('output-update', (newOutput) => {
+      console.log('Output update received:', newOutput);  // Debugging line
       setOutput(newOutput);
     });
 
-    // Clean up the socket connection on component unmount
     return () => {
       socket.off('code-update');
       socket.off('problem-update');
@@ -36,7 +51,7 @@ const Room = () => {
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);
-    socket.emit('code-change', newCode); // Send the code change to the server
+    socket.emit('code-change', newCode);
   };
 
   const handleRunCode = async () => {
@@ -51,7 +66,7 @@ const Room = () => {
 
       const result = await response.json();
       setOutput(result.output);
-      socket.emit('output-change', result.output); // Sync the output with the other clients
+      socket.emit('output-change', result.output);
     } catch (error) {
       setOutput(`Error: ${error.message}`);
     }
@@ -59,9 +74,8 @@ const Room = () => {
 
   const handleSearchProblem = async () => {
     const url = document.getElementById('problem-url').value;
+    const titleSlug = url.split('/').filter(Boolean).pop();
 
-    const titleSlug = url.split('/').filter(Boolean).pop(); // e.g., "climbing-stairs"
-    
     try {
       const response = await fetch('http://localhost:4000/api/fetch-leetcode-problem', {
         method: 'POST',

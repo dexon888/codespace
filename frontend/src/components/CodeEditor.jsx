@@ -4,7 +4,7 @@ import Editor from '@monaco-editor/react';
 const CodeEditor = ({ initialCode, onChange }) => {
   const [code, setCode] = useState(initialCode || '');
 
-  // Update the editor content if the initialCode prop changes
+  // Sync the internal state with the external prop whenever it changes
   useEffect(() => {
     setCode(initialCode);
   }, [initialCode]);
@@ -19,8 +19,8 @@ const CodeEditor = ({ initialCode, onChange }) => {
   return (
     <Editor
       height="90vh"
-      defaultLanguage="javascript"
-      value={code}  // Use value instead of defaultValue
+      language="python" 
+      value={code}
       theme="vs-dark"
       onChange={handleEditorChange}
     />
