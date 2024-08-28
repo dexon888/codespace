@@ -5,8 +5,8 @@ import './Room.css';
 
 const socket = io('http://localhost:4000');
 
-const Room = () => {
-  const defaultPythonCode = `# Necessary imports for a Leetcode problem
+const languageTemplates = {
+  python: `# Necessary imports for a Leetcode problem
 import sys
 import collections
 import math
@@ -17,41 +17,69 @@ def main():
 
 if __name__ == "__main__":
     main()
-  `;
+  `,
+  javascript: `// Necessary imports for a Leetcode problem
 
-  const [code, setCode] = useState(defaultPythonCode); 
+function main() {
+    // Your code here
+}
+
+main();
+  `,
+  java: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        // Your code here
+    }
+}
+  `
+  // Add more templates for other languages if needed
+};
+
+const Room = () => {
+  const [language, setLanguage] = useState('python'); // Default to Python
+  const [code, setCode] = useState(languageTemplates[language]); 
   const [problemContent, setProblemContent] = useState('');
   const [output, setOutput] = useState('');
 
   useEffect(() => {
-    // Listen for code updates from the server
     socket.on('code-update', (newCode) => {
-      console.log('Code update received:', newCode);  // Debugging line
       setCode(newCode);
     });
 
-    // Listen for problem updates from the server
     socket.on('problem-update', (newProblemContent) => {
-      console.log('Problem update received:', newProblemContent);  // Debugging line
       setProblemContent(newProblemContent);
     });
 
-    // Listen for output updates from the server
     socket.on('output-update', (newOutput) => {
-      console.log('Output update received:', newOutput);  // Debugging line
       setOutput(newOutput);
+    });
+
+    // Listen for language updates from the server
+    socket.on('language-update', (newLanguage) => {
+      setLanguage(newLanguage);
+      setCode(languageTemplates[newLanguage]); // Update code template based on the new language
     });
 
     return () => {
       socket.off('code-update');
       socket.off('problem-update');
       socket.off('output-update');
+      socket.off('language-update'); // Clean up the listener on unmount
     };
   }, []);
 
   const handleCodeChange = (newCode) => {
     setCode(newCode);
     socket.emit('code-change', newCode);
+  };
+
+  const handleLanguageChange = (event) => {
+    const selectedLanguage = event.target.value;
+    setLanguage(selectedLanguage);
+    setCode(languageTemplates[selectedLanguage]); // Update local code template
+    socket.emit('language-change', selectedLanguage); // Emit the language change event
   };
 
   const handleRunCode = async () => {
@@ -61,7 +89,7 @@ if __name__ == "__main__":
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, language }), // Send the selected language to the backend
       });
 
       const result = await response.json();
@@ -107,6 +135,15 @@ if __name__ == "__main__":
             <input type="text" id="problem-url" placeholder="Enter Leetcode URL" />
             <button onClick={handleSearchProblem}>Load Problem</button>
           </div>
+          <div className="language-selection">
+            <label htmlFor="language-select">Language:</label>
+            <select id="language-select" value={language} onChange={handleLanguageChange}>
+              <option value="python">Python</option>
+              <option value="javascript">JavaScript</option>
+              <option value="java">Java</option>
+              {/* Add more languages as needed */}
+            </select>
+          </div>
         </div>
         <div className="problem-content">
           <h3>Leetcode Problem</h3>
@@ -114,7 +151,7 @@ if __name__ == "__main__":
         </div>
       </div>
       <div className="right-panel">
-        <CodeEditor initialCode={code} onChange={handleCodeChange} />
+        <CodeEditor initialCode={code} onChange={handleCodeChange} language={language} />
         <button onClick={handleRunCode} className="run-button">Run Code</button>
         <div className="output-panel">
           <h3>Output</h3>

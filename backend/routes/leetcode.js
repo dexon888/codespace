@@ -1,6 +1,8 @@
 const express = require('express');
 const axios = require('axios');
-const { spawn } = require('child_process'); // Import child_process to run Python scripts
+const { spawn, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const router = express.Router();
 
 router.post('/fetch-leetcode-problem', async (req, res) => {
@@ -19,9 +21,61 @@ router.post('/fetch-leetcode-problem', async (req, res) => {
 });
 
 router.post('/run-code', (req, res) => {
-  const { code } = req.body;
+  const { code, language } = req.body;
 
-  const process = spawn('python3', ['-c', code]); // Spawn a child process to run Python code
+  let command;
+  let args;
+  let filePath;
+
+  switch (language) {
+    case 'python':
+      command = 'python3';
+      args = ['-c', code];
+      break;
+    case 'javascript':
+      command = 'node';
+      args = ['-e', code];
+      break;
+    case 'java':
+      // Write the Java code to a temporary file named Main.java
+      filePath = path.join(__dirname, 'Main.java');
+      fs.writeFileSync(filePath, code);
+
+      // Compile the Java code
+      const compile = spawnSync('javac', [filePath]);
+
+      if (compile.stderr.toString()) {
+        return res.json({ output: `Compilation Error: ${compile.stderr.toString()}` });
+      }
+
+      // Execute the compiled Java class
+      const run = spawn('java', ['-cp', __dirname, 'Main']); // Use 'Main' to match the public class name
+
+      let output = '';
+      let errorOutput = '';
+
+      run.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      run.stderr.on('data', (data) => {
+        errorOutput += data.toString();
+      });
+
+      run.on('close', (code) => {
+        if (errorOutput) {
+          res.json({ output: `Runtime Error: ${errorOutput}` });
+        } else {
+          res.json({ output: output.trim() });
+        }
+      });
+
+      return;
+    default:
+      return res.json({ output: `Error: Unsupported language ${language}` });
+  }
+
+  const process = spawn(command, args);
 
   let output = '';
   let errorOutput = '';

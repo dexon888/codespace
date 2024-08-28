@@ -53,6 +53,12 @@ const startServer = async () => {
       socket.broadcast.emit('output-update', newOutput);
     });
 
+    // Listen for language changes and broadcast them to other users
+    socket.on('language-change', (newLanguage) => {
+      console.log('Language change received:', newLanguage);
+      socket.broadcast.emit('language-update', newLanguage);
+    });
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
     });

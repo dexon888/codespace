@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 
-const CodeEditor = ({ initialCode, onChange }) => {
+const CodeEditor = ({ initialCode, onChange, language }) => {
   const [code, setCode] = useState(initialCode || '');
 
-  // Sync the internal state with the external prop whenever it changes
   useEffect(() => {
     setCode(initialCode);
   }, [initialCode]);
@@ -19,7 +18,7 @@ const CodeEditor = ({ initialCode, onChange }) => {
   return (
     <Editor
       height="90vh"
-      language="python" 
+      language={language} // Set the language dynamically
       value={code}
       theme="vs-dark"
       onChange={handleEditorChange}

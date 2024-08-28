@@ -130,3 +130,20 @@
     word-wrap: break-word;
     font-family: 'Courier New', Courier, monospace;
 }
+
+.language-selection {
+    margin-top: 10px;
+}
+
+.language-selection label {
+    margin-right: 10px;
+    color: #61dafb;
+}
+
+.language-selection select {
+    padding: 5px;
+    background-color: #333;
+    color: white;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
