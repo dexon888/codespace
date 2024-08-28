@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { useQuery, useMutation, gql } from '@apollo/client';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, gql } from '@apollo/client';
+import './Lobby.css'; // Import the new CSS for styling
 
 const ROOMS_QUERY = gql`
   query GetRooms {
@@ -28,80 +29,47 @@ const CREATE_ROOM_MUTATION = gql`
   }
 `;
 
-const JOIN_ROOM_MUTATION = gql`
-  mutation JoinRoom($roomId: ID!, $userId: ID!) {
-    joinRoom(roomId: $roomId, userId: $userId) {
-      id
-      name
-      participants {
-        id
-        username
-      }
-    }
-  }
-`;
-
 const Lobby = () => {
   const { loading, error, data } = useQuery(ROOMS_QUERY);
   const [createRoom] = useMutation(CREATE_ROOM_MUTATION);
-  const [joinRoom] = useMutation(JOIN_ROOM_MUTATION);
   const [roomName, setRoomName] = useState('');
   const navigate = useNavigate();
+
+  const handleCreateRoom = async () => {
+    if (roomName.trim() === '') return;
+
+    const result = await createRoom({ variables: { name: roomName } });
+    navigate(`/room/${result.data.createRoom.id}`);
+  };
+
+  const handleJoinRoom = (roomId) => {
+    navigate(`/room/${roomId}`);
+  };
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  const handleCreateRoom = async () => {
-    if (!roomName.trim()) return;
-    try {
-      const { data, errors } = await createRoom({ variables: { name: roomName } });
-      if (errors) {
-        console.error("GraphQL errors:", errors);
-      }
-      console.log("Room created:", data.createRoom);
-      setRoomName('');
-      navigate(`/room/${data.createRoom.id}`);
-    } catch (error) {
-      console.error("Mutation error:", error);
-      alert("Failed to create room. Please try again.");
-    }
-  };
-
-  const handleJoinRoom = async (roomId) => {
-    const userId = Math.floor(Math.random() * 1000); // Random userId for testing
-    try {
-      const { data, errors } = await joinRoom({ variables: { roomId, userId } });
-      if (errors) {
-        console.error("GraphQL errors:", errors);
-      }
-      console.log("Room joined:", data.joinRoom);
-      navigate(`/room/${roomId}`);
-    } catch (error) {
-      console.error("Mutation error:", error);
-      alert("Failed to join room. Please try again.");
-    }
-  };
-
-
   return (
-    <div>
-      <h1>Lobby</h1>
-      <div>
+    <div className="lobby-container">
+      <h1 className="lobby-title">Welcome to CodeSync</h1>
+      <h2 className="lobby-subtitle">Join or Create a Room</h2>
+      <div className="room-creation">
         <input
           type="text"
           value={roomName}
           onChange={(e) => setRoomName(e.target.value)}
-          placeholder="Room Name"
+          placeholder="Enter Room Name"
+          className="room-input"
         />
-        <button onClick={handleCreateRoom}>Create Room</button>
+        <button onClick={handleCreateRoom} className="create-room-button">Create Room</button>
       </div>
-      <div>
-        <h2>Available Rooms</h2>
+      <div className="rooms-list">
+        <h3>Available Rooms</h3>
         <ul>
           {data.rooms.map((room) => (
-            <li key={room.id}>
-              {room.name} ({room.participants.length} participants)
-              <button onClick={() => handleJoinRoom(room.id)}>Join Room</button>
+            <li key={room.id} className="room-item">
+              <span>{room.name} ({room.participants.length} participants)</span>
+              <button onClick={() => handleJoinRoom(room.id)} className="join-room-button">Join Room</button>
             </li>
           ))}
         </ul>
