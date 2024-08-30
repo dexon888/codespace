@@ -1,0 +1,49 @@
+/* AuthPage.css */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: #282c34;
+    /* Use the same background color as in Lobby and Room */
+}
+
+.auth-card {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 300px;
+}
+
+.auth-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #282c34;
+}
+
+.auth-button,
+.auth-toggle-button {
+    padding: 10px 20px;
+    font-size: 16px;
+    margin-top: 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.auth-button {
+    background-color: #61dafb;
+    color: #282c34;
+    width: 100%;
+}
+
+.auth-toggle-button {
+    background-color: transparent;
+    color: #61dafb;
+    width: 100%;
+    margin-top: 15px;
+    text-decoration: underline;
+    cursor: pointer;
+}
