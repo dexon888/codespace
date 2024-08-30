@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { useQuery, useMutation, gql } from '@apollo/client';
+import { useAuth0 } from '@auth0/auth0-react';
 import './Lobby.css'; // Import the new CSS for styling
 
 const ROOMS_QUERY = gql`
@@ -34,6 +35,12 @@ const Lobby = () => {
   const [createRoom] = useMutation(CREATE_ROOM_MUTATION);
   const [roomName, setRoomName] = useState('');
   const navigate = useNavigate();
+
+  const { isAuthenticated } = useAuth0();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" />;
+  }
 
   const handleCreateRoom = async () => {
     if (roomName.trim() === '') return;
