@@ -9,10 +9,16 @@ const leetcodeRoutes = require('./routes/leetcode'); // Import the Leetcode rout
 const hintRoutes = require('./routes/hint');
 require('dotenv').config(); 
 
-
 const startServer = async () => {
   const app = express();
-  app.use(cors()); // Enable CORS
+
+  // Enable CORS with specific origins
+  app.use(cors({
+    origin: ["http://localhost:3000", "https://codespace-6399.onrender.com"], // Both localhost and deployed frontend URL
+    methods: ["GET", "POST"],
+    credentials: true // Allow credentials (cookies, authorization headers, etc.)
+  }));
+
   app.use(express.json()); // Enable JSON body parsing
   
   const server = http.createServer(app); // Create an HTTP server
@@ -30,11 +36,12 @@ const startServer = async () => {
   app.use('/api', leetcodeRoutes); // Use the imported routes
   app.use('/api', hintRoutes);
 
-  // Set up Socket.IO
+  // Set up Socket.IO with CORS configuration
   const io = new Server(server, {
     cors: {
-      origin: ['http://localhost:3000', 'https://codespace-6399.onrender.com/'], 
-      methods: ['GET', 'POST'],
+      origin: ["http://localhost:3000", "https://codespace-6399.onrender.com"], // Include both your local dev URL and deployed frontend URL
+      methods: ["GET", "POST"],
+      credentials: true // Allow credentials (cookies, authorization headers, etc.)
     },
   });
 
