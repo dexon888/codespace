@@ -33,7 +33,7 @@ const startServer = async () => {
   // Set up Socket.IO
   const io = new Server(server, {
     cors: {
-      origin: '*', // Adjust this according to your client origin
+      origin: ['http://localhost:3000', 'https://codespace-6399.onrender.com/'], 
       methods: ['GET', 'POST'],
     },
   });
@@ -70,9 +70,10 @@ const startServer = async () => {
 
   const PORT = process.env.PORT || 4000;
   server.listen(PORT, () => {
-    console.log(`Server ready at http://localhost:${PORT}${apolloServer.graphqlPath}`);
+    console.log(`Server ready at ${PORT}${apolloServer.graphqlPath}`);
     console.log(`WebSocket server running on port ${PORT}`);
   });
+
 };
 
 startServer();
