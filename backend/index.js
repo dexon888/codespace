@@ -33,8 +33,8 @@ const startServer = async () => {
   apolloServer.applyMiddleware({ app });
 
   // Use the Leetcode API routes
-  app.use('/api', leetcodeRoutes); // Use the imported routes
-  app.use('/api', hintRoutes);
+  app.use('/leetcode', leetcodeRoutes); 
+  app.use('/hint', hintRoutes);
 
   // Set up Socket.IO with CORS configuration
   const io = new Server(server, {

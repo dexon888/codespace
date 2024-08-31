@@ -118,7 +118,7 @@ const Room = () => {
     }
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/fetch-leetcode-problem`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/leetcode/fetch-leetcode-problem`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ const Room = () => {
   // Function to handle the Get Hint button click
   const handleGetHint = async () => {
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/generate-hint`, {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/hint/generate-hint`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
