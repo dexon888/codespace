@@ -3,7 +3,7 @@ import { io } from 'socket.io-client';
 import CodeEditor from './CodeEditor';
 import './Room.css';
 
-const socket = io('http://localhost:4000');
+const socket = io(`${process.env.REACT_APP_API_URL}`);
 
 const languageTemplates = {
   python: `# Necessary imports for a Leetcode problem
@@ -86,7 +86,7 @@ const Room = () => {
 
   const handleRunCode = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/run-code', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/run-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const Room = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:4000/api/fetch-leetcode-problem', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/fetch-leetcode-problem`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -145,7 +145,7 @@ const Room = () => {
   // Function to handle the Get Hint button click
   const handleGetHint = async () => {
     try {
-      const response = await fetch('http://localhost:4000/api/generate-hint', {
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/generate-hint`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
