@@ -6,6 +6,9 @@ const { Server } = require('socket.io');
 const schema = require('./schemas');
 const resolvers = require('./resolvers');
 const leetcodeRoutes = require('./routes/leetcode'); // Import the Leetcode route handler
+const hintRoutes = require('./routes/hint');
+require('dotenv').config(); 
+
 
 const startServer = async () => {
   const app = express();
@@ -25,6 +28,7 @@ const startServer = async () => {
 
   // Use the Leetcode API routes
   app.use('/api', leetcodeRoutes); // Use the imported routes
+  app.use('/api', hintRoutes);
 
   // Set up Socket.IO
   const io = new Server(server, {

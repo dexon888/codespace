@@ -42,6 +42,7 @@ const Room = () => {
   const [code, setCode] = useState(languageTemplates[language]); 
   const [problemContent, setProblemContent] = useState('');
   const [output, setOutput] = useState('');
+  const [hint, setHint] = useState(''); // State for storing the hint
 
   useEffect(() => {
     socket.on('code-update', (newCode) => {
@@ -50,6 +51,7 @@ const Room = () => {
 
     socket.on('problem-update', (newProblemContent) => {
       setProblemContent(newProblemContent);
+      setHint(''); // Clear the hint when a new problem is loaded
     });
 
     socket.on('output-update', (newOutput) => {
@@ -105,6 +107,8 @@ const Room = () => {
     const titleSlug = url.split('/').filter(Boolean).pop();
 
     try {
+      setHint(''); // Clear the current hint when searching for a new problem
+
       const response = await fetch('http://localhost:4000/api/fetch-leetcode-problem', {
         method: 'POST',
         headers: {
@@ -127,6 +131,28 @@ const Room = () => {
     }
   };
 
+  // Function to handle the Get Hint button click
+  const handleGetHint = async () => {
+    try {
+      const response = await fetch('http://localhost:4000/api/generate-hint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ problemDescription: problemContent, currentCode: code }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setHint(result.hint); // Update the hint state with the received hint
+    } catch (error) {
+      console.error('Failed to fetch hint:', error);
+    }
+  };
+
   return (
     <div className="room-container">
       <div className="left-panel">
@@ -144,10 +170,19 @@ const Room = () => {
               {/* Add more languages as needed */}
             </select>
           </div>
+          {/* Add the Get Hint button */}
+          <button onClick={handleGetHint} className="hint-button">Get Hint</button>
         </div>
         <div className="problem-content">
           <h3>Leetcode Problem</h3>
           <div className="problem-description" dangerouslySetInnerHTML={{ __html: problemContent }}></div>
+          {/* Display the hint if available */}
+          {hint && (
+            <div className="hint-section">
+              <h3>Hint:</h3>
+              <p>{hint}</p>
+            </div>
+          )}
         </div>
       </div>
       <div className="right-panel">
