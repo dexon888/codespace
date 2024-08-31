@@ -104,11 +104,20 @@ const Room = () => {
 
   const handleSearchProblem = async () => {
     const url = document.getElementById('problem-url').value;
-    const titleSlug = url.split('/').filter(Boolean).pop();
+
+    // Split the URL and remove empty strings
+    const parts = url.split('/').filter(Boolean);
+
+    // Find the index of "problems" and extract the next part as the titleSlug
+    const problemIndex = parts.indexOf('problems');
+    const titleSlug = problemIndex !== -1 && parts[problemIndex + 1] ? parts[problemIndex + 1] : '';
+
+    if (!titleSlug) {
+        console.error('Invalid Leetcode URL');
+        return;
+    }
 
     try {
-      setHint(''); // Clear the current hint when searching for a new problem
-
       const response = await fetch('http://localhost:4000/api/fetch-leetcode-problem', {
         method: 'POST',
         headers: {
@@ -124,12 +133,14 @@ const Room = () => {
       const problem = await response.json();
       if (problem && problem.content) {
         setProblemContent(problem.content);
+        setHint('');  // Clear any existing hint when a new problem is loaded
         socket.emit('problem-change', problem.content);
       }
     } catch (error) {
       console.error('Failed to fetch the problem content:', error);
     }
-  };
+};
+
 
   // Function to handle the Get Hint button click
   const handleGetHint = async () => {
